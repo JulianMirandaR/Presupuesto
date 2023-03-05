@@ -1,11 +1,15 @@
 const ingresos = [
-    new Ingreso('Salario', 2100.00),
-    new Ingreso('Venta coche', 1500)
+    new Ingreso('Curso Mercado libre', 1500.00),
+    new Ingreso('Venta flores', 3000),
+    new Ingreso('Pileta Dora', 4000),
+    new Ingreso('Prestamo Pimienta para mosca', 3000)
 ];
 
 const egresos = [
-    new Egreso('Renta departamento', 900),
-    new Egreso('Ropa', 400)
+    new Egreso('Bebidas Pub', 2000),
+    new Egreso('trading', 8000),
+    new Egreso('relog', 4000),
+    new Egreso('Prestamo a Mosca', 3000)
 ];
 
 let cargarApp = ()=>{
