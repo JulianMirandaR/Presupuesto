@@ -44,7 +44,7 @@ let cargarCabecero = ()=>{
 }
 
 const formatoMoneda = (valor)=>{
-    return valor.toLocaleString('es-ES',{style:'currency', currency:'EUR', minimumFractionDigits:2});
+    return valor.toLocaleString('es-AR',{style:'currency', currency:'ARG', minimumFractionDigits:2});
 }
 
 const formatoPorcentaje = (valor)=>{
