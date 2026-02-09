@@ -1,12 +1,12 @@
-class Egreso extends Dato{
+class Egreso extends Dato {
     static contadorEgresos = 0;
-    constructor(descripcion, valor){
-        super(descripcion,valor);
-        this._id= ++ Egreso.contadorIngresos;
+    constructor(descripcion, valor, id) {
+        super(descripcion, valor);
+        this._id = id || ++Egreso.contadorEgresos;
     }
 
-    get id(){
+    get id() {
         return this._id;
     }
 }
-    
+

@@ -1,65 +1,76 @@
-const ingresos = [
-    new Ingreso('Curso Mercado libre', 1500.00),
-    new Ingreso('Venta flores', 3000),
-    new Ingreso('Pileta Dora', 4000),
-    new Ingreso('Prestamo Pimienta para mosca', 3000)
-];
+// Arrays locales (se llenarán desde Firebase)
+let ingresos = [];
+let egresos = [];
 
-const egresos = [
-    new Egreso('Bebidas Pub', 2000),
-    new Egreso('trading', 8000),
-    new Egreso('relog', 4000),
-    new Egreso('Prestamo a Mosca', 3000)
-];
+let cargarApp = () => {
+    if (typeof db === 'undefined' || !db) {
+        console.warn("Base de datos no inicializada. Verifique firebase-config.js");
+        return;
+    }
 
-let cargarApp = ()=>{
-    cargarCabecero();
-    cargarIngresos();
-    cargarEgresos();
+    // Escuchar cambios en Ingresos
+    db.collection('ingresos').onSnapshot(snapshot => {
+        ingresos = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return new Ingreso(data.descripcion, data.valor, doc.id);
+        });
+        cargarCabecero();
+        cargarIngresos();
+    });
+
+    // Escuchar cambios en Egresos
+    db.collection('egresos').onSnapshot(snapshot => {
+        egresos = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return new Egreso(data.descripcion, data.valor, doc.id);
+        });
+        cargarCabecero();
+        cargarEgresos();
+    });
 }
 
-let totalIngresos = ()=>{
+let totalIngresos = () => {
     let totalIngreso = 0;
-    for(let ingreso of ingresos){
+    for (let ingreso of ingresos) {
         totalIngreso += ingreso.valor;
     }
     return totalIngreso;
 }
 
-let totalEgresos = ()=>{
+let totalEgresos = () => {
     let totalEgreso = 0;
-    for(let egreso of egresos){
+    for (let egreso of egresos) {
         totalEgreso += egreso.valor;
     }
     return totalEgreso;
 }
 
-let cargarCabecero = ()=>{
+let cargarCabecero = () => {
     let presupuesto = totalIngresos() - totalEgresos();
-    let porcentajeEgreso = totalEgresos()/totalIngresos();
+    let porcentajeEgreso = totalIngresos() > 0 ? totalEgresos() / totalIngresos() : 0;
     document.getElementById('presupuesto').innerHTML = formatoMoneda(presupuesto);
     document.getElementById('porcentaje').innerHTML = formatoPorcentaje(porcentajeEgreso);
     document.getElementById('ingresos').innerHTML = formatoMoneda(totalIngresos());
     document.getElementById('egresos').innerHTML = formatoMoneda(totalEgresos());
 }
 
-const formatoMoneda = (valor)=>{
-    return valor.toLocaleString('es-AR',{style:'currency', currency:'ARG', minimumFractionDigits:2});
+const formatoMoneda = (valor) => {
+    return valor.toLocaleString('es-AR', { style: 'currency', currency: 'ARG', minimumFractionDigits: 2 });
 }
 
-const formatoPorcentaje = (valor)=>{
-    return valor.toLocaleString('en-US',{style:'percent', minimumFractionDigits:2});
+const formatoPorcentaje = (valor) => {
+    return valor.toLocaleString('en-US', { style: 'percent', minimumFractionDigits: 2 });
 }
 
-const cargarIngresos = ()=>{
+const cargarIngresos = () => {
     let ingresosHTML = '';
-    for(let ingreso of ingresos){
+    for (let ingreso of ingresos) {
         ingresosHTML += crearIngresoHTML(ingreso);
     }
     document.getElementById('lista-ingresos').innerHTML = ingresosHTML;
 }
 
-const crearIngresoHTML = (ingreso)=>{
+const crearIngresoHTML = (ingreso) => {
     let ingresoHTML = `
     <div class="elemento limpiarEstilos">
     <div class="elemento_descripcion">${ingreso.descripcion}</div>
@@ -68,7 +79,7 @@ const crearIngresoHTML = (ingreso)=>{
         <div class="elemento_eliminar">
             <button class='elemento_eliminar--btn'>
                 <ion-icon name="close-circle-outline"
-                onclick='eliminarIngreso(${ingreso.id})'></ion-icon>
+                onclick="eliminarIngreso('${ingreso.id}')"></ion-icon>
             </button>
         </div>
     </div>
@@ -77,32 +88,32 @@ const crearIngresoHTML = (ingreso)=>{
     return ingresoHTML;
 }
 
-const eliminarIngreso = (id)=>{
-    let indiceEliminar = ingresos.findIndex( ingreso => ingreso.id === id);
-    ingresos.splice(indiceEliminar, 1);
-    cargarCabecero();
-    cargarIngresos();
+const eliminarIngreso = (id) => {
+    // Eliminar de Firestore (la UI se actualiza sola gracias al onSnapshot)
+    db.collection('ingresos').doc(id).delete()
+        .then(() => console.log("Ingreso eliminado"))
+        .catch(error => console.error("Error eliminando ingreso: ", error));
 }
 
-const cargarEgresos = ()=>{
+const cargarEgresos = () => {
     let egresosHTML = '';
-    for(let egreso of egresos){
+    for (let egreso of egresos) {
         egresosHTML += crearEgresoHTML(egreso);
     }
     document.getElementById('lista-egresos').innerHTML = egresosHTML;
 }
 
-const crearEgresoHTML = (egreso)=>{
+const crearEgresoHTML = (egreso) => {
     let egresoHTML = `
     <div class="elemento limpiarEstilos">
     <div class="elemento_descripcion">${egreso.descripcion}</div>
     <div class="derecha limpiarEstilos">
         <div class="elemento_valor">- ${formatoMoneda(egreso.valor)}</div>
-        <div class="elemento_porcentaje">${formatoPorcentaje(egreso.valor/totalEgresos())}</div>
+        <div class="elemento_porcentaje">${formatoPorcentaje(totalEgresos() > 0 ? egreso.valor / totalEgresos() : 0)}</div>
         <div class="elemento_eliminar">
             <button class='elemento_eliminar--btn'>
                 <ion-icon name="close-circle-outline"
-                onclick='eliminarEgreso(${egreso.id})'></ion-icon>
+                onclick="eliminarEgreso('${egreso.id}')"></ion-icon>
             </button>
         </div>
     </div>
@@ -111,28 +122,39 @@ const crearEgresoHTML = (egreso)=>{
     return egresoHTML;
 }
 
-let eliminarEgreso = (id)=>{
-    let indiceEliminar = egresos.findIndex(egreso => egreso.id === id);
-    egresos.splice(indiceEliminar, 1);
-    cargarCabecero();
-    cargarEgresos();
+const eliminarEgreso = (id) => {
+    // Eliminar de Firestore
+    db.collection('egresos').doc(id).delete()
+        .then(() => console.log("Egreso eliminado"))
+        .catch(error => console.error("Error eliminando egreso: ", error));
 }
 
-let agregarDato = ()=>{
+let agregarDato = () => {
     let forma = document.forms['forma'];
     let tipo = forma['tipo'];
     let descripcion = forma['descripcion'];
     let valor = forma['valor'];
-    if(descripcion.value !== '' && valor.value !== ''){
-        if(tipo.value === 'ingreso'){
-            ingresos.push( new Ingreso(descripcion.value, +valor.value));
-            cargarCabecero();
-            cargarIngresos();
+    if (descripcion.value !== '' && valor.value !== '') {
+        const nuevoDato = {
+            descripcion: descripcion.value,
+            valor: +valor.value
+        };
+
+        if (tipo.value === 'ingreso') {
+            db.collection('ingresos').add(nuevoDato)
+                .then(() => {
+                    console.log("Ingreso agregado");
+                    forma.reset();
+                })
+                .catch(error => console.error("Error al agregar ingreso: ", error));
         }
-        else if(tipo.value === 'egreso'){
-           egresos.push( new Egreso(descripcion.value, +valor.value));
-           cargarCabecero();
-           cargarEgresos();
+        else if (tipo.value === 'egreso') {
+            db.collection('egresos').add(nuevoDato)
+                .then(() => {
+                    console.log("Egreso agregado");
+                    forma.reset();
+                })
+                .catch(error => console.error("Error al agregar egreso: ", error));
         }
     }
 }

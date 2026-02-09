@@ -32,9 +32,9 @@ body {
     padding-top: 150px;
     padding-bottom: 100px;
     color: #fff;
-    background: url(/css/fondo.png), #7b4397;
-    background: url(/css/fondo.png), -webkit-gradient(linear, right top, left top, from(#7b4397), to(#dc2430));
-    background: url(/css/fondo.png), linear-gradient(to left, #7b4397, #dc2430)
+    background: url(fondo.png), #7b4397;
+    background: url(fondo.png), -webkit-gradient(linear, right top, left top, from(#7b4397), to(#dc2430));
+    background: url(fondo.png), linear-gradient(to left, #7b4397, #dc2430)
 }
 
 .presupuesto {
